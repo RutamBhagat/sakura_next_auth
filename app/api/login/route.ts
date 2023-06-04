@@ -3,7 +3,6 @@ import validator from "validator";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import { signJwtAccessToken } from "@/lib/jwt";
-import { use } from "react";
 
 type RequestBody = {
   email: string;

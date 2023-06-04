@@ -14,6 +14,7 @@ const defaultFormFields = {
 export default function page() {
   const [input, setInput] = useState(defaultFormFields);
   const [isDisabled, setIsDisabled] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (input.email && input.password) {
@@ -28,10 +29,6 @@ export default function page() {
     setInput({ ...input, [name]: value });
   };
 
-  const resetFormFields = () => {
-    setInput(defaultFormFields);
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
@@ -44,8 +41,8 @@ export default function page() {
         redirect: true,
         callbackUrl: "/",
       });
-    } catch (error) {
-      console.log("error", error);
+    } catch (error: any) {
+      setError(error?.response.data.error);
     }
   };
 
@@ -54,12 +51,8 @@ export default function page() {
       <div className="flex h-full flex-col items-center justify-center px-4 sm:px-0">
         <div className="flex h-[675px] w-full rounded-2xl bg-gray-300 shadow-lg sm:mx-0 sm:w-3/4 md:w-5/6 lg:max-w-5xl">
           <div className="relative flex w-full flex-col justify-center px-10 md:w-1/2 md:px-4 lg:px-10">
-            {/* {error && (
-              <div
-                className={`absolute top-2 left-2 right-2 flex p-4 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 ${
-                  showError ? "" : "hidden"
-                }`}
-              >
+            {error && (
+              <div className="absolute top-2 left-2 right-2 flex p-4 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400">
                 <svg
                   aria-hidden="true"
                   className="flex-shrink-0 w-5 h-5"
@@ -76,7 +69,7 @@ export default function page() {
                 <div className="ml-3 text-sm font-medium">{error}</div>
                 <button
                   onClick={() => {
-                    setShowError(false);
+                    setError(null);
                   }}
                   type="button"
                   className="ml-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex h-8 w-8 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700"
@@ -90,7 +83,7 @@ export default function page() {
                   </svg>
                 </button>
               </div>
-            )} */}
+            )}
             <h1 className="text-4xl font-medium">Sign UP</h1>
             <p className="text-slate-500">Create an account</p>
             <form onSubmit={handleSubmit} className="mt-10 mb-5">

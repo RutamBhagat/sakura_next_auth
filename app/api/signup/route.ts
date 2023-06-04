@@ -3,7 +3,6 @@ import validator from "validator";
 import { isTemporaryEmail } from "temporary-email-validator";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
-import { signJwtAccessToken } from "@/lib/jwt";
 
 type RequestBody = {
   name: string;
@@ -44,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
   }
   if (hasError) {
-    return NextResponse.json({ errorMessage: errorMessage }, { status: 400 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 
   // Check if user exists
@@ -55,7 +54,7 @@ export async function POST(request: NextRequest) {
   });
   // Send error if user exists
   if (userByEmail) {
-    return NextResponse.json({ errorMessage: "Email already exists, please sign in" }, { status: 400 });
+    return NextResponse.json({ error: "Email already exists, please sign in" }, { status: 500 });
   }
 
   const hashedPassword = await bcrypt.hash(body.password, 10);
@@ -71,10 +70,5 @@ export async function POST(request: NextRequest) {
   });
 
   const { password, ...userWithoutPassword } = user;
-  const accessToken = signJwtAccessToken(userWithoutPassword);
-  const result = {
-    ...userWithoutPassword,
-    accessToken,
-  };
-  return NextResponse.json(result, { status: 200 });
+  return NextResponse.json(userWithoutPassword, { status: 200 });
 }

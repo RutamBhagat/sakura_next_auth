@@ -32,23 +32,17 @@ export default function page() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      signIn("credentials", {
+      const response = await signIn("credentials", {
         email: input.email,
         password: input.password,
         redirect: false,
-      }).then((res) => {
-        console.log("res", res);
-        // @ts-ignore
-        if (res.error) {
-          // @ts-ignore
-          // this error shows "CredentialsSignIn" which is a helpful error hence show custom error
-          console.log(res.error);
-          // @ts-ignore
-          setError("Invalid email or password");
-        } else {
-          router.push("/");
-        }
       });
+      if (response?.error) {
+        // this error shows "CredentialsSignIn" which is a helpful error hence show custom error
+        setError("Invalid email or password");
+      } else {
+        router.push("/");
+      }
     } catch (error) {
       console.log("error", error);
     }

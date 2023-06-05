@@ -38,8 +38,7 @@ export async function POST(request: NextRequest) {
     }
   }
   if (hasError) {
-    return NextResponse.json({ errorMessage: errorMessage }, { status: 400 });
-    // return new Response(JSON.stringify(null));
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 
   // Check if user already exists
@@ -50,8 +49,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (user) {
-    return NextResponse.json({ errorMessage: "User already exists" }, { status: 400 });
-    return new Response(JSON.stringify(null));
+    return NextResponse.json({ error: "User already exists" }, { status: 400 });
   }
 
   user = await prisma.user.create({

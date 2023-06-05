@@ -1,27 +1,39 @@
 "use client";
+import axios from "axios";
 import Link from "next/link";
 import React, { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import ZoomingBackground from "../components/page";
+import { useSearchParams } from "next/navigation";
+import ZoomingBackground from "../auth/components/page";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 const defaultFormFields = {
-  email: "",
   password: "",
+  confirm_password: "",
 };
 
 export default function page() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>();
   const [input, setInput] = useState(defaultFormFields);
   const [isDisabled, setIsDisabled] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (input.email && input.password) {
+    if (input.password && input.confirm_password) {
       return setIsDisabled(false);
     }
     setIsDisabled(true);
   }, [input]);
+
+  useEffect(() => {
+    const getEmail = async () => {
+      const response = await axios.get(`/api/getEmail?token=${token}`);
+      setEmail(response.data.email);
+    };
+    getEmail();
+  }, []);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -32,25 +44,23 @@ export default function page() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      // NOTE: we need to put redirect false to avoid redirecting to the same page again
-      const response = await signIn("credentials", {
-        email: input.email,
+      await axios.post("/api/resetPassword", { ...input, email });
+      await signIn("credentials", {
+        email: email,
         password: input.password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: "/",
       });
-      if (response?.error) {
-        // this error shows "CredentialsSignIn" which is a helpful error hence show custom error
-        setError("Invalid email or password");
-      } else {
-        router.push("/");
-      }
     } catch (error) {
-      console.log("error", error);
+      // @ts-ignore
+      console.log("error.response.data", error.response.data);
+      // @ts-ignore
+      setError(error.response.data.error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 py-5">
+    <div className="w-screen min-h-screen bg-gray-900 py-5">
       <div className="flex h-full flex-col items-center justify-center px-4 sm:px-0">
         <div className="flex h-[675px] w-full rounded-2xl bg-gray-300 shadow-lg sm:mx-0 sm:w-3/4 md:w-5/6 lg:max-w-5xl">
           <div className="relative flex w-full flex-col justify-center px-10 md:w-1/2 md:px-4 lg:px-10">
@@ -87,22 +97,10 @@ export default function page() {
                 </button>
               </div>
             )}
-            <h1 className="text-4xl font-medium">Login</h1>
-            <p className="text-slate-500">Hi, Welcome back</p>
+            <h1 className="text-4xl font-medium">Forgot Password?</h1>
+            <p className="text-slate-500">Reset your password</p>
             <form onSubmit={handleSubmit} className="mt-10 mb-5">
               <div className="flex flex-col space-y-5">
-                <label>
-                  <p className="pb-2 font-medium text-slate-700">Email address</p>
-                  <input
-                    required
-                    onChange={handleChange}
-                    name="email"
-                    type="email"
-                    value={input.email}
-                    placeholder="Enter email address"
-                    className="w-full rounded-lg border border-slate-200 py-3 px-3 hover:shadow focus:border-slate-500 focus:outline-none"
-                  />
-                </label>
                 <label>
                   <p className="pb-2 font-medium text-slate-700">Password</p>
                   <input
@@ -115,35 +113,39 @@ export default function page() {
                     className="w-full rounded-lg border border-slate-200 py-3 px-3 hover:shadow focus:border-slate-500 focus:outline-none"
                   />
                 </label>
-                <div className="flex justify-end">
-                  <Link
-                    href="/check_email"
-                    className="inline-flex items-center space-x-1 font-sm text-sm text-violet-800 hover:text-violet-900"
-                  >
-                    <span>Forgot Password</span>
-                  </Link>
-                </div>
+                <label>
+                  <p className="pb-2 font-medium text-slate-700">Confirm Password</p>
+                  <input
+                    required
+                    onChange={handleChange}
+                    name="confirm_password"
+                    type="password"
+                    value={input.confirm_password}
+                    placeholder="Confirm your password"
+                    className="w-full rounded-lg border border-slate-200 py-3 px-3 hover:shadow focus:border-slate-500 focus:outline-none"
+                  />
+                </label>
                 <button
                   disabled={isDisabled}
                   className={`${
                     isDisabled ? "bg-violet-500" : "bg-violet-800 hover:bg-violet-900"
                   } inline-flex w-full items-center justify-center space-x-2 rounded-lg border-violet-800 py-3 font-medium text-white hover:shadow`}
                 >
-                  <span>Sign In</span>
+                  <span>Reset Password</span>
                 </button>
                 <p className="text-center">
-                  Not registered yet?{" "}
+                  Want to go back?{" "}
                   <Link
-                    href="/auth/register"
+                    href="/auth/signin"
                     className="inline-flex items-center space-x-1 font-medium text-violet-800 hover:text-violet-900"
                   >
-                    <span>Register now </span>
+                    <span>Sign In </span>
                   </Link>
                 </p>
               </div>
             </form>
           </div>
-          <ZoomingBackground imageSrc="https://images.unsplash.com/photo-1517999144091-3d9dca6d1e43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=627&q=80" />
+          <ZoomingBackground imageSrc="https://images.unsplash.com/photo-1494861895304-fb272971c078?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" />
         </div>
       </div>
     </div>

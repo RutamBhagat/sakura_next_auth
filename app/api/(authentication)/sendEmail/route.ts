@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
   const { password, ...userWithoutPassword } = user;
 
-  const accessToken = signJwtAccessToken(userWithoutPassword);
+  const accessToken = signJwtAccessToken(userWithoutPassword, { expiresIn: "15m" });
 
   // NODEMAILER PART
   // create reusable transporter object using the default SMTP transport

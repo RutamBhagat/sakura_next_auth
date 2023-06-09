@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
         <p>Dear ${email.split("@")[0]},</p>
         <p>We recently received a request to reset the password associated with your Nordstone account. To regain access to your account, please follow the instructions below:</p>
         <ol>
-            <li>Click on the password reset link at <a href="https://nordstone-assignment.vercel.app/forgot_password?token=${accessToken}">Reset Password Vercel</a></li>
-            <li>or <a href="http://localhost:3000/forgot_password?token=${accessToken}">Reset Password Localhost</a></li>
+            <li>Click on the password reset link at <a href="https://nordstone-assignment.vercel.app/auth/forgot_password?token=${accessToken}">Reset Password Vercel</a></li>
+            <li>or <a href="http://localhost:3000/auth/forgot_password?token=${accessToken}">Reset Password Localhost</a></li>
             <li>Follow the on-screen instructions to create a new password for your account.</li>
         </ol>
         <p>Please note that this password reset link will expire after 24 hours for security reasons. If you don't reset your password within this time frame, you'll need to submit another "Forgot Password" request.</p>

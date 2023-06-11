@@ -17,10 +17,10 @@ export async function GET(request: Request, { params }: Props) {
 
   const userPost = await prisma.post.findMany({
     where: {
-      authorId: Number(params.id),
+      userId: params.id,
     },
     include: {
-      author: {
+      user: {
         select: {
           email: true,
           name: true,

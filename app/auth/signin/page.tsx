@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
 import React, { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import ZoomingBackground from "../components/page";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import GoogleButton from "./components/GoogleButton";
+import GithubButton from "./components/GithubButton";
+import ZoomingBackground from "../components/page";
 
 const defaultFormFields = {
   email: "",
@@ -29,23 +31,17 @@ export default function page() {
     setInput({ ...input, [name]: value });
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmitSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    try {
-      // NOTE: we need to put redirect false to avoid redirecting to the same page again
-      const response = await signIn("credentials", {
-        email: input.email,
-        password: input.password,
-        redirect: false,
-      });
-      if (response?.error) {
-        // this error shows "CredentialsSignIn" which is a helpful error hence show custom error
-        setError("Invalid email or password");
-      } else {
-        router.push("/");
-      }
-    } catch (error) {
-      console.log("error", error);
+    const response = await signIn("credentials", {
+      email: input.email,
+      password: input.password,
+      redirect: false,
+    });
+    if (response?.error) {
+      setError(response.error);
+    } else if (response?.ok && response.status === 200) {
+      router.push("/");
     }
   };
 
@@ -89,7 +85,9 @@ export default function page() {
             )}
             <h1 className="text-4xl font-medium">Login</h1>
             <p className="text-slate-500">Hi, Welcome back</p>
-            <form onSubmit={handleSubmit} className="mt-10 mb-5">
+            <GoogleButton />
+            <GithubButton />
+            <form onSubmit={handleSubmitSignIn} className="mb-5">
               <div className="flex flex-col space-y-5">
                 <label>
                   <p className="pb-2 font-medium text-slate-700">Email address</p>
@@ -104,7 +102,15 @@ export default function page() {
                   />
                 </label>
                 <label>
-                  <p className="pb-2 font-medium text-slate-700">Password</p>
+                  <div className="flex justify-between pb-2 font-medium text-slate-700">
+                    <p>Password</p>
+                    <Link
+                      href="/auth/check_email"
+                      className="ml-auto inline-flex items-center space-x-1 font-sm text-sm text-violet-800 hover:text-violet-900"
+                    >
+                      <span>Forgot Password</span>
+                    </Link>
+                  </div>
                   <input
                     required
                     onChange={handleChange}
@@ -115,14 +121,6 @@ export default function page() {
                     className="w-full rounded-lg border border-slate-200 py-3 px-3 hover:shadow focus:border-slate-500 focus:outline-none"
                   />
                 </label>
-                <div className="flex justify-end">
-                  <Link
-                    href="/auth/check_email"
-                    className="inline-flex items-center space-x-1 font-sm text-sm text-violet-800 hover:text-violet-900"
-                  >
-                    <span>Forgot Password</span>
-                  </Link>
-                </div>
                 <button
                   disabled={isDisabled}
                   className={`${

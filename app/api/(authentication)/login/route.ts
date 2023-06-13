@@ -18,10 +18,6 @@ export async function POST(request: NextRequest) {
       valid: validator.isEmail(body.email),
       errorMessage: "Email is not valid",
     },
-    {
-      valid: validator.isStrongPassword(body.password),
-      errorMessage: "Password is invalid",
-    },
   ];
 
   let hasError = false;
@@ -34,8 +30,7 @@ export async function POST(request: NextRequest) {
     }
   }
   if (hasError) {
-    // return NextResponse.json({ error: errorMessage }, { status: 400 });
-    return new Response(JSON.stringify(null));
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 
   // Check if user exists and check user credentials
@@ -45,7 +40,17 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  if (user && (await bcrypt.compare(body.password, user.password))) {
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 400 });
+  }
+
+  if (user && !user.password) {
+    return NextResponse.json({ error: "Please login using your OAuth account" }, { status: 400 });
+  }
+
+  const isMatchingPassword = await bcrypt.compare(body.password, user.password as string);
+
+  if (isMatchingPassword) {
     const { password, ...userWithoutPassword } = user;
     const accessToken = signJwtAccessToken(userWithoutPassword);
     const result = {
@@ -54,6 +59,6 @@ export async function POST(request: NextRequest) {
     };
     return NextResponse.json(result, { status: 200 });
   } else {
-    return new Response(JSON.stringify(null));
+    return NextResponse.json({ error: "Incorrect Password" }, { status: 400 });
   }
 }
